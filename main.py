@@ -1,4 +1,4 @@
-import sys, logging, open_color, arcade
+import sys, logging, os, random, math, arcade
 
 #check to make sure we are running the right version of Python
 version = (3,7)
@@ -8,9 +8,40 @@ assert sys.version_info >= version, "This script requires at least Python {0}.{1
 logging.basicConfig(format='[%(filename)s:%(lineno)d] %(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-SCREEN_TITLE = ""
+SCREEN_WIDTH = 500
+SCREEN_HEIGHT = 900
+SCREEN_TITLE = "Space Shooter"
+STARTING_LOCATION = (250,100)
+BULLET_DAMAGE = 10
+ENEMY_HP = 100
+NUM_ENEMIES = 6
+HIT_SCORE = 5
+KILL_SCORE = 25
+
+
+def update(self):
+        self.center_x += self.dx
+        self.center_y += self.dy
+
+class Player(arcade.Sprite):
+    def __init__(self):
+        super().__init__("assets/Starfighter.png", 0.5)
+        (self.center_x, self.center_y) = STARTING_LOCATION
+
+class Bullet(arcade.Sprite):
+    def __init__(self, position, velocity, damage):
+        super().__init__("assets/laserblue2.png", 0.3)
+        (self.center_x, self.center_y) = position
+        (self.dx, self.dy) = velocity
+        self.damage = damage
+
+class Enemy(arcade.Sprite):
+    def __init__(self, position):
+        super().__init__("assets/shipYellow_manned.png", 0.3)
+        self.hp = ENEMY_HP
+        (self.center_x, self.center_y) = position
+
+
 
 
 class Window(arcade.Window):
@@ -19,18 +50,23 @@ class Window(arcade.Window):
 
         # Call the parent class's init function
         super().__init__(width, height, title)
+
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
+
         # Make the mouse disappear when it is over the window.
         # So we just see our object, not the pointer.
         self.set_mouse_visible(False)
 
-        arcade.set_background_color(open_color.green)
+        self.background = None
 
 
 
     def setup(self):
-        pass 
+        
+        self.background = arcade.load_texture("assets/spacebackground.jpg")
+        
+
 
     def update(self, delta_time):
         pass
@@ -38,6 +74,8 @@ class Window(arcade.Window):
     def on_draw(self):
         """ Called whenever we need to draw the window. """
         arcade.start_render()
+
+        arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
 
 
