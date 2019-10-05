@@ -19,10 +19,6 @@ HIT_SCORE = 5
 KILL_SCORE = 25
 
 
-def update(self):
-        self.center_x += self.dx
-        self.center_y += self.dy
-
 class Player(arcade.Sprite):
     def __init__(self):
         super().__init__("assets/Starfighter.png", 0.5)
@@ -34,14 +30,15 @@ class Bullet(arcade.Sprite):
         (self.center_x, self.center_y) = position
         (self.dx, self.dy) = velocity
         self.damage = damage
+    def update(self):
+        self.center_x += self.dx
+        self.center_y += self.dy
 
 class Enemy(arcade.Sprite):
     def __init__(self, position):
         super().__init__("assets/shipYellow_manned.png", 0.3)
         self.hp = ENEMY_HP
         (self.center_x, self.center_y) = position
-
-
 
 
 class Window(arcade.Window):
@@ -58,37 +55,57 @@ class Window(arcade.Window):
         # So we just see our object, not the pointer.
         self.set_mouse_visible(False)
 
-        self.background = None
-
-
+        self.background = arcade.load_texture("assets/spacebackground.png")
+        self.bullet_list = arcade.SpriteList()
+        self.enemy_list = arcade.SpriteList()
+        self.player = Player()
+        self.score = 0
 
     def setup(self):
-        
-        self.background = arcade.load_texture("assets/spacebackground.jpg")
-        
+
+        for i in range(NUM_ENEMIES):
+            x = 60 * (i+1) + 30
+            y = 700
+            enemy = Enemy((x,y))
+            self.enemy_list.append(enemy) 
 
 
     def update(self, delta_time):
-        pass
+        
+        self.bullet_list.update()
+        self.player.update()
+        self.enemy_list.update()
+        for e in self.enemy_list:
+            damage = arcade.check_for_collision_with_list(e, self.bullet_list)
+            for d in damage: 
+                e.hp = e.hp - BULLET_DAMAGE
+                self.score = self.score + HIT_SCORE
+                if e.hp == 0: 
+                    e.kill()
+                    self.score = self.score + KILL_SCORE
 
     def on_draw(self):
         """ Called whenever we need to draw the window. """
         arcade.start_render()
 
         arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
-
-
+        self.player.draw()
+        self.bullet_list.draw()
+        self.enemy_list.draw()
+        arcade.draw_text(str(self.score), 20, SCREEN_HEIGHT - 40, 16)
 
 
     def on_mouse_motion(self, x, y, dx, dy):
-        """ Called to update our objects. Happens approximately 60 times per second."""
-        pass
+       
+        self.player.center_x = x   
 
     def on_mouse_press(self, x, y, button, modifiers):
-        """
-        Called when the user presses a mouse button.
-        """
-        pass
+        
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            x = self.player.center_x
+            y = self.player.center_y + 15
+            bullet = Bullet((x,y),(0,5),BULLET_DAMAGE)
+            self.bullet_list.append(bullet)
 
     def on_mouse_release(self, x, y, button, modifiers):
         """
@@ -106,6 +123,7 @@ class Window(arcade.Window):
             print("Up")
         elif key == arcade.key.DOWN:
             print("Down")
+        pass
 
     def on_key_release(self, key, modifiers):
         """ Called whenever a user releases a key. """
